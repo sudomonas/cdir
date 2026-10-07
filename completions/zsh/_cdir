@@ -1,0 +1,19 @@
+#compdef cdir
+# zsh completion for the cdir executable. Install into a directory on $fpath.
+# SPDX-License-Identifier: GPL-3.0-or-later
+# (The `c` shell function gets its completion from shell/zsh.sh.)
+
+local -a names
+names=(${(f)"$(command cdir --names 2>/dev/null)"})
+
+_arguments -s \
+    '(- *)'{-h,--help}'[show help]' \
+    '(- *)'{-v,--version}'[show version]' \
+    '(- *)'{-l,--list}'[list bookmarks]' \
+    '(-a --add -l --list -i --interactive)'{-d,--delete}'[delete bookmarks]:bookmark:($names)' \
+    '(-d --delete -l --list -i --interactive)'{-a,--add}'[add a bookmark]' \
+    '(-a --add -d --delete -l --list)'{-i,--interactive}'[browse from bookmark or path]' \
+    {-f,--force}'[replace an existing bookmark]' \
+    {-m,--allow-missing}'[allow a nonexistent directory]' \
+    '1:bookmark:($names)' \
+    '2:directory:_directories'

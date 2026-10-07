@@ -1,0 +1,409 @@
+.TH CDIR 1 "October 2026" "cdir 1.0.0" "User Commands"
+.SH NAME
+cdir, c \- directory launcher with named bookmarks
+.SH SYNOPSIS
+.B c
+.RI [ NAME ]
+.br
+.B c \-i
+.RI [ NAME | PATH ]
+.br
+.B c \-a
+.RB [ \-f ]
+.RB [ \-m ]
+.I NAME
+.RI [ PATH ]
+.br
+.B c \-d
+.IR NAME ...
+.br
+.B c \-l
+.br
+.B c
+.BR \-h " | " \-v
+.SH DESCRIPTION
+.B cdir
+is
+.BR cd (1)
+with a memory and a visual directory picker.
+.B c napkin
+jumps to a saved directory;
+.B c
+alone opens a keyboard-driven, Dired-inspired browser starting in the
+current directory.
+.PP
+A program cannot change the working directory of the shell that started
+it. So
+.B cdir
+only
+.I prints
+the chosen directory on standard output, and the shell function
+.BR c ,
+installed by the shell integration (see
+.BR "SHELL INTEGRATION" ),
+captures it and runs
+.B cd
+in your shell. Running
+.B cdir
+directly is useful in scripts, e.g.
+.BR "dir=$(cdir notes)" .
+.PP
+When
+.B cdir
+prints a directory, standard output contains exactly that absolute path
+followed by one newline, and nothing else. The interactive interface is
+drawn on
+.IR /dev/tty ;
+errors go to standard error.
+.SH COMMANDS
+.TP
+.B c
+Browse interactively from the current directory.
+.TP
+.BI c " NAME"
+Go to bookmark
+.IR NAME .
+No interface is started. If there is no exact match but exactly one
+bookmark starts with
+.IR NAME ,
+that one is used. If several bookmarks match by prefix, or none does but
+some match fuzzily, a small picker lists the candidates. An exact match
+always wins.
+.TP
+.BR \-i ", " \-\-interactive " [\fINAME\fR|\fIPATH\fR]"
+Browse, starting from a bookmark or a path instead of the current
+directory. An argument containing a slash, or starting with
+.RB \(lq . \(rq
+or
+.RB \(lq ~ \(rq,
+is always a path.
+.TP
+.BR \-a ", " \-\-add " \fINAME\fR [\fIPATH\fR]"
+Bookmark
+.I PATH
+(default: the current directory) as
+.IR NAME .
+The path is made absolute; a leading
+.BR ~ ,
+.B $HOME
+or
+.B ${HOME}
+is expanded if the shell did not already do so.
+.B ..
+components are resolved lexically, as
+.B cd
+does, and symbolic links are kept as written. The directory must exist.
+If
+.I NAME
+already exists with a different path,
+.B cdir
+asks before replacing it; without a terminal to ask on, it refuses.
+.TP
+.BR \-f ", " \-\-force
+With
+.BR \-a :
+replace an existing bookmark without asking.
+.TP
+.BR \-m ", " \-\-allow\-missing
+With
+.BR \-a :
+accept a directory that does not exist yet.
+.TP
+.BR \-d ", " \-\-delete " \fINAME\fR..."
+Delete bookmarks. No confirmation is asked.
+.TP
+.BR \-l ", " \-\-list
+List bookmarks with aligned columns. Paths below your home directory are
+shown as
+.BR ~/... ;
+bookmarks whose directory is gone are marked
+.BR [missing] ,
+but never removed automatically. When standard output is not a terminal,
+the list is printed as
+.IB NAME \et PATH
+lines, with paths escaped as in the bookmark file.
+.TP
+.BR \-h ", " \-\-help
+Show a short usage summary.
+.TP
+.BR \-v ", " \-\-version
+Show the version.
+.PP
+Short options may be combined
+.RB ( "c \-af napkin ~/Napkin" ).
+.B \-\-
+ends option processing.
+.SH INTERACTIVE KEYS
+The list shows
+.B ./
+(the directory you are in),
+.B ../
+and the subdirectories, sorted naturally and case-insensitively. Hidden
+directories and files are not shown unless toggled on.
+.PP
+The model is:
+.B Enter
+moves you around,
+.B Space
+picks a destination.
+.TP 18
+.BR j ", " k ", " \(da ", " \(ua
+Move. Also
+.BR Ctrl+N / Ctrl+P ,
+.BR PgUp / PgDn ;
+.BR g / G
+or
+.BR Home / End
+for the first and last entry.
+.TP
+.BR Enter ", " l ", " \(->
+Open the highlighted directory. On
+.B ../
+go to the parent; on
+.B ./
+choose the current directory and exit.
+.TP
+.BR Backspace ", " h ", " \(<- ", " \-
+Go to the parent directory (the cursor lands on the directory you came
+from).
+.TP
+.BR Space ", " Ctrl+Enter
+Choose the highlighted directory and exit. On
+.B ./
+this is the current directory. Many terminals send the same code for
+Ctrl+Enter and Enter;
+.B cdir
+recognises Ctrl+Enter on terminals that support the kitty keyboard
+protocol (e.g. Ghostty, kitty, recent Alacritty, foot, WezTerm) or xterm's
+modifyOtherKeys.
+.B Ctrl+J
+works everywhere.
+.TP
+.B /
+Filter the current directory as you type (fuzzy:
+.B prj
+finds
+.BR Projects ).
+.B Enter
+opens the best match,
+.B Ctrl+J
+chooses it,
+.B Tab
+keeps the filter and returns to normal keys,
+.B Esc
+clears it. Only the current directory is searched; nothing is scanned
+recursively.
+.TP
+.B a
+Bookmark the highlighted directory. You are asked for a name (a
+suggestion derived from the directory name is pre-filled).
+.TP
+.B A
+Bookmark the current directory.
+.TP
+.B b
+Open the bookmark list.
+.TP
+.B ~
+Go to your home directory.
+.TP
+.B .
+Show or hide hidden directories (this session only).
+.TP
+.B f
+Show or hide files (dimmed, for orientation only).
+.TP
+.B ?
+Show all keys.
+.TP
+.BR q ", " Esc ", " Ctrl+C
+Quit without changing directory (exit status 4).
+.B Esc
+first clears an active filter.
+.PP
+In the bookmark list:
+.TP 18
+.BR Enter ", " Space
+Go to the highlighted bookmark.
+.TP
+.BR l ", " \(->
+Browse from the highlighted bookmark.
+.TP
+.B /
+Filter bookmark names.
+.TP
+.B d
+Delete the highlighted bookmark (asks first).
+.TP
+.BR Esc ", " h ", " b
+Back to the browser (when started with an ambiguous
+.BI "c " NAME\fR,
+.B Esc
+cancels).
+.TP
+.B q
+Quit.
+.SH BOOKMARK FILE
+Bookmarks live in
+.IR $XDG_CONFIG_HOME/cdir/bookmarks ,
+by default
+.IR ~/.config/cdir/bookmarks ,
+created on first use. It is a plain text file you may edit by hand:
+.PP
+.RS
+.nf
+# comment
+napkin=/home/aragorn/Projects/Napkin
+music=/home/aragorn/Music/Live Recordings
+.fi
+.RE
+.PP
+Bookmark names consist of letters, digits,
+.B _
+and
+.BR \- ,
+and may not start with
+.BR \- ,
+so they can never be mistaken for options. Since names cannot contain
+.BR = ,
+everything after the first
+.B =
+is the path, which must be absolute. In the path,
+.B \e\e
+stands for a backslash,
+.B \en
+for a newline and
+.B \er
+for a carriage return; all other characters, including spaces and tabs,
+are literal. If a name appears more than once, the last line wins. Lines
+that cannot be parsed are reported by
+.B c \-l
+and otherwise ignored; they are kept unchanged when
+.B cdir
+rewrites the file.
+.PP
+Changes are written to a temporary file which is synced and then renamed
+over the bookmark file, so the file is never half-written. Concurrent
+writers are serialised with
+.BR flock (2)
+on
+.IR bookmarks.lock .
+If the bookmark file is a symbolic link (for example into a dotfiles
+repository), the link target is updated and the link is kept.
+.SH SYMBOLIC LINKS
+.B cdir
+treats paths the way the shell's
+.B cd
+does: symlinks are preserved, not resolved.
+.B c \-a x ~/link
+stores
+.IR ~/link ,
+and browsing into a symlinked directory shows and returns the path
+through the link. Symlinks to directories are listed with their target;
+broken links are only shown (as such) when files are shown. Set
+.B follow_symlinks=true
+to receive physical paths from the browser instead.
+.SH CONFIGURATION
+.B cdir
+works without any configuration. The optional file
+.I ~/.config/cdir/config
+accepts:
+.TP
+.BR show_hidden= false | true
+Show dot-directories when the browser starts.
+.TP
+.BR show_files= false | true
+List regular files below the directories.
+.TP
+.BR follow_symlinks= false | true
+Print the resolved physical path when choosing in the browser.
+.TP
+.BR sort= natural | alpha
+Natural order ("disc2" before "disc10") or plain alphabetical.
+.PP
+The environment variable
+.B NO_COLOR
+disables colours; the interface then uses only bold and reverse video.
+.SH SHELL INTEGRATION
+Add one line to your shell's startup file:
+.PP
+.RS
+.nf
+# ~/.bashrc
+source ~/.local/share/cdir/bash.sh
+
+# ~/.zshrc, after compinit
+source ~/.local/share/cdir/zsh.sh
+.fi
+.RE
+.PP
+This defines the function
+.B c
+and tab completion of bookmark names. When
+.B c
+selects a directory it runs
+.B cdir
+in a command substitution, and only if the exit status is 0 does it run
+.BR "builtin cd \-\- " "\fIdir\fR."
+Commands that do not select a directory
+.RB ( \-a ", " \-d ", " \-l ", " \-h ", " \-v )
+are run directly so their output is not captured. Directory names with
+spaces, tabs, newlines (including trailing ones), a leading dash, or
+non-ASCII characters are handled. An existing alias named
+.B c
+is removed.
+.PP
+Completion lists bookmark names by running the hidden command
+.BR "cdir \-\-names" .
+.SH EXIT STATUS
+.TP
+.B 0
+Success; for selecting commands, a directory was printed.
+.TP
+.B 1
+General error (unreadable bookmark file, no terminal, refused replace...).
+.TP
+.B 2
+Invalid command or arguments, including invalid bookmark names.
+.TP
+.B 3
+Bookmark not found.
+.TP
+.B 4
+Cancelled by the user.
+.TP
+.B 5
+The target directory does not exist or cannot be entered.
+.PP
+The
+.B c
+function changes directory only on status 0.
+.SH FILES
+.TP
+.I ~/.config/cdir/bookmarks
+Bookmarks.
+.TP
+.I ~/.config/cdir/config
+Optional settings.
+.TP
+.I ~/.local/share/cdir/bash.sh\fR, \fI~/.local/share/cdir/zsh.sh
+Shell integration (for a user-local install).
+.SH EXAMPLES
+.nf
+$ c \-a napkin ~/Projects/Napkin
+Added bookmark:
+napkin \(-> /home/aragorn/Projects/Napkin
+$ c napkin
+$ pwd
+/home/aragorn/Projects/Napkin
+$ c nap            # unique prefix
+$ c \-i napkin      # browse from the bookmark
+$ c \-l
+$ c \-af napkin .   # repoint without asking
+$ c \-d napkin
+$ cp \-r "$(cdir notes)" /backup   # use from scripts
+.fi
+.SH SEE ALSO
+.BR cd (1),
+.BR bash (1),
+.BR zsh (1)

@@ -1,0 +1,14 @@
+# ~/.config/cdir/config — every setting is optional; these are the defaults.
+
+# Show dot-directories when the browser starts (toggle with "." at runtime).
+show_hidden=false
+
+# List regular files, dimmed, below the directories (toggle with "f").
+show_files=false
+
+# When selecting a directory in the browser, print its resolved physical
+# path instead of the path you navigated through (e.g. via a symlink).
+follow_symlinks=false
+
+# natural: "track2" before "track10"; alpha: plain case-insensitive order.
+sort=natural

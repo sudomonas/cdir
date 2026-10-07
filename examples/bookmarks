@@ -1,0 +1,14 @@
+# ~/.config/cdir/bookmarks
+#
+# NAME=PATH, one per line. Names: letters, digits, '_' and '-' (not first).
+# Everything after the first '=' is the path, spaces and all. In paths,
+# \\ is a backslash, \n a newline and \r a carriage return.
+# Lines starting with '#' are comments. If a name repeats, the last wins.
+
+napkin=/home/aragorn/Projects/Napkin
+segue=/home/aragorn/Projects/Segue
+clinlang=/home/aragorn/Projects/ClinLang
+notes=/home/aragorn/Documents/Notes
+downloads=/home/aragorn/Downloads
+dotfiles=/home/aragorn/.config
+music=/home/aragorn/Music/Live Recordings

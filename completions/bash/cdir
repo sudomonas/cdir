@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# bash completion for the cdir executable.
+# Install to ~/.local/share/bash-completion/completions/cdir
+# (the `c` shell function gets its completion from shell/bash.sh).
+
+_cdir() {
+    local cur=${COMP_WORDS[COMP_CWORD]} prev=${COMP_WORDS[COMP_CWORD-1]}
+    local IFS=$'\n'
+    case $prev in
+        -d|--delete|-i|--interactive)
+            COMPREPLY=($(compgen -W "$(command cdir --names 2>/dev/null)" -- "$cur"))
+            return ;;
+    esac
+    if [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W $'-a\n-d\n-l\n-i\n-h\n-v\n-f\n-m\n--add\n--delete\n--list\n--interactive\n--help\n--version\n--force\n--allow-missing' -- "$cur"))
+    elif [ "$COMP_CWORD" -eq 1 ]; then
+        COMPREPLY=($(compgen -W "$(command cdir --names 2>/dev/null)" -- "$cur"))
+    else
+        compopt -o filenames 2>/dev/null
+        COMPREPLY=($(compgen -d -- "$cur"))
+    fi
+}
+complete -F _cdir cdir
